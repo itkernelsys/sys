@@ -1,0 +1,68 @@
+OS: 	Windows 10 21H1
+VM:     Oracle VirtualBox	https://www.virtualbox.org/wiki/Downloads
+VM_OS:  CentOS Stream		http://mirror.surf/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-20210528-dvd1.iso
+SSH_CL: MobaXTern free		https://mobaxterm.mobatek.net/download-home-edition.html
+
+#=============== Install CentOS Stream
+
+1.Install CentOS Stream on VirtualBox			2GB 20 GB
+2.Change network adapters settings to Network Bridge
+
+
+
+#=============== Take snapshot VM after installation
+You can take many other snapshots for your experements
+
+
+#=============== Update Repositories
+yum update -y
+yum install epel-release EPEL -y
+
+#=============== SELinux (Security-Enhanced Linux) disable 
+
+Disable SELinux forever
+
+sestatus
+vim /etc/selinux/config   = set disabled
+init 6
+sestatus
+
+#=============== SSH access
+
+OpenSSH configure or check if installed, and try to connect by mobaXTern 
+
+systemctl enable sshd.service
+systemctl start sshd.service
+systemctl status sshd.service
+firewall-cmd --permanent --add-service=ssh
+
+
+
+If needed change SSH port or Permit root login (on default - yes)
+vim etc/ssh/sshd_config
+
+
+
+
+#=======================================================================================
+Additional actions if forgot:
+
+In VirtualBox needed set up Network bridge in network settings and yours network connection
+
+My IP Address is 192.168.0.25
+
+try to connect via SSH by MobaXTern
+
+OK! Let's take other snapshot
+
+
+#=============== Take snapshot VM after setup
+
+Oracle VirtualBox snapshot 2
+
+
+
+====
+
+
+Thanks for watching!

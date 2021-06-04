@@ -1,0 +1,109 @@
+OS: 	Windows 10 21H1
+VM:     Oracle VirtualBox	https://www.virtualbox.org/wiki/Downloads
+VM_OS:  CentOS Stream		http://mirror.surf/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-20210528-dvd1.iso
+SSH_CL: MobaXTern free		https://mobaxterm.mobatek.net/download-home-edition.html
+Zabbix + MySQL + Appache: 	https://www.zabbix.com/ru/download
+
+#=============== Install Zabbix 5.4
+
+If you don't know how to install CentOS please see #0
+
+I use information from official manual 
+https://www.zabbix.com/ru/download?zabbix=5.4&os_distribution=centos&os_version=8&db=mysql&ws=apache
+
+Connect via SSH to our CentOS Stream
+
+
+
+# Install MySQL, Appache, MariaDB PHP
+
+yum install -y httpd httpd-tools mariadb-server mariadb  php php-fpm php-opcache php-gd php-curl php-mysqlnd php-mbstring
+
+#start services
+systemctl start httpd mariadb php-fpm 
+
+#add to autorun
+systemctl enable httpd mariadb php-fpm
+
+
+#setup mysql root
+
+mysql_secure_installation
+
+# root by default empty
+# Set root password Y
+# Enter new password for root 
+
+# Remove test user Y
+# root remote login remove Y
+# remove test base Y
+# Reload privileges Y
+
+# add to firewall services http/https
+firewall-cmd --permanent --zone=public --add-service=http
+firewall-cmd --permanent --zone=public --add-service=https
+firewall-cmd --reload
+
+# if not worked restart systemctl restart httpd 
+
+
+
+# repositories
+rpm -Uvh https://repo.zabbix.com/zabbix/5.4/rhel/8/x86_64/zabbix-release-5.4-1.el8.noarch.rpm
+dnf clean all
+
+# install zabbix
+dnf install -y zabbix-server-mysql zabbix-web-mysql zabbix-apache-conf zabbix-sql-scripts zabbix-agent
+
+
+# Create database zabbix
+
+mysql -uroot -p
+create database zabbix character set utf8 collate utf8_bin;
+create user zabbix@localhost identified by 'zabbix';
+grant all privileges on zabbix.* to zabbix@localhost;
+\q
+
+
+password=zabbix 
+
+you can use other password
+
+# Import schema to zabbix database
+zcat /usr/share/doc/zabbix-sql-scripts/mysql/create.sql.gz | mysql -uzabbix -p zabbix
+
+
+# Config
+
+DBPassword= password from schema
+
+vim /etc/zabbix/zabbix_server.conf
+
+
+# Restart all services
+
+systemctl restart zabbix-server zabbix-agent httpd php-fpm
+systemctl enable zabbix-server zabbix-agent httpd php-fpm
+
+
+#=============== Add rules to firewall
+
+
+firewall-cmd --permanent --add-port={80/tcp,443/tcp,10051/tcp,10050/tcp,10050/udp,10051/udp}
+firewall-cmd --reload
+
+
+
+# Show IP address
+
+ip a
+
+
+# Try to connect to web form of Zabbix
+
+http://192.168.0.24/zabbix
+
+
+#====================== If needed change config
+
+vim /etc/php.ini
